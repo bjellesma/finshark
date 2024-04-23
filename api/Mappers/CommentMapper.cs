@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using api.Dtos.Comment;
 using api.Models;
 
@@ -18,11 +14,11 @@ namespace api.Mappers
                 StockId = commentModel.StockId
             };
         }
-        public static Comment ToCommentFromCreateDTO(this CreateCommentRequestDto commentDto){
+        public static Comment ToCommentFromCreateDto(this CreateCommentRequestDto commentDto, int StockId){
             return new Comment{
                 Title = commentDto.Title,
                 Content = commentDto.Content,
-                CreatedOn = commentDto.CreatedOn
+                StockId = StockId
             };
         }
     }

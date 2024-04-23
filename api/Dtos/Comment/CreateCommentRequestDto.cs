@@ -1,14 +1,23 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
+using api.Validation;
 
 namespace api.Dtos.Comment
 {
     public class CreateCommentRequestDto
     {
-        public string Title {get;set;} = string.Empty;
-        public string Content {get;set;} = string.Empty;
-        public DateTime CreatedOn {get;set;} = DateTime.Now;
+        public const int MinLength = 5;
+        public const int MaxLength = 140;
+
+        // Length Validation is a custom validation that I've made
+        [Required]
+        [LengthValidation(MinLength, MaxLength)]
+        public string Title { get; set; } = string.Empty;
+
+        [Required]
+        [LengthValidation(MinLength, MaxLength)]
+        public string Content { get; set; } = string.Empty;
     }
+
+    
+    
 }
