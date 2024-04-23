@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using api.Data;
 using api.Dtos.Stock;
+using api.Interfaces;
 using api.Mappers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,8 +17,11 @@ namespace api.Controllers
     public class StockController : ControllerBase
     {
         private readonly ApplicationDBContext _context;
-        public StockController(ApplicationDBContext context)
+        private readonly IStockRepository _stockRepo;
+        // todo remove context
+        public StockController(ApplicationDBContext context, IStockRepository stockRepo)
         {
+            _stockRepo = stockRepo;
             _context = context;
         }
 
@@ -27,7 +31,7 @@ namespace api.Controllers
             // LINQ queries are deferred by nature meaning that the results are not returned until they're actually needed by the application
             // using ToList forces them to be retrieved at this specific point when we're calling this
             // so essentially we're bypassing the defered and saying that we want this right now
-            var stocks = await _context.Stocks.ToListAsync();
+            var stocks = await _stockRepo.GetAllAsync();
                 // select is like map in this case
             var stockDto = stocks.Select(s => s.ToStockDto());
 
@@ -37,13 +41,10 @@ namespace api.Controllers
         [HttpGet("{id}")]
         // returning one record with the FromRoute
         public async Task<IActionResult> GetById([FromRoute] int id){
-            var stock = await _context.Stocks.FindAsync(id);
-
+           var stock = await _stockRepo.GetByIdAsync(id);
             if(stock == null){
-                // Not Found is provided by the Entity Framework
                 return NotFound();
             }
-
             return Ok(stock.ToStockDto());
         }
 
@@ -51,9 +52,7 @@ namespace api.Controllers
         // fromBody is an annotation saying that whatever is passed in the body of the request will exist in that param
         public async Task<IActionResult> Create([FromBody] CreateStockRequestDto stockDto){
             var stockModel = stockDto.ToStockFromCreateDTO();
-            // add will just add the data to the buffer on the entity framework while save changes will actually run the sql
-            await _context.Stocks.AddAsync(stockModel);
-            await _context.SaveChangesAsync();
+            stockModel = await _stockRepo.CreateAsync(stockModel);
             // This created at action is going to perform getbyid, with the param provided in the second arg, and tostockdto is going to be the final action
             return CreatedAtAction(nameof(GetById), new {id = stockModel.Id}, stockModel.ToStockDto());
 
@@ -62,39 +61,22 @@ namespace api.Controllers
         [HttpPut]
         [Route("{id}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateStockRequestDto updateDto){
-            var stockModel = await _context.Stocks.FirstOrDefaultAsync(x => x.Id == id);
-
+            var stockModel = await _stockRepo.UpdateAsync(id, updateDto);
             if(stockModel == null){
                 return NotFound();
             }
-
-            stockModel.Symbol = updateDto.Symbol;
-            stockModel.CompanyName = updateDto.CompanyName;
-            stockModel.Purchase = updateDto.Purchase;
-            stockModel.LastDiv = updateDto.LastDiv;
-            stockModel.Industry = updateDto.Industry;
-            stockModel.MarketCap = updateDto.MarketCap;
-
-            await _context.SaveChangesAsync();
-
             return Ok(stockModel.ToStockDto());
         }
 
         [HttpDelete]
         [Route("{id}")]
         public async Task<IActionResult> Delete([FromRoute] int id){
-            var stockModel = await _context.Stocks.FirstOrDefaultAsync(x => x.Id == id);
-            // check if exists
+            var stockModel = await _stockRepo.DeleteAsync(id);
             if(stockModel == null){
                 return NotFound();
             }
-            // remove is not an async function because it does not allow for a database change, just a state transaction
-            _context.Stocks.Remove(stockModel);
-            await _context.SaveChangesAsync();
-            // get the remainder of stocks
-            var stocks = _context.Stocks.ToList()
-                // select is like map in this case
-                .Select(s => s.ToStockDto());
+            var stocks = await _stockRepo.GetAllAsync();
+            var stockDto = stocks.Select(s => s.ToStockDto());
 
             // could also use return nocontent to give a 200 with no content
             return Ok(stocks);
