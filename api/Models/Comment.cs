@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
+    /// <summary>
+    /// create table for the comments
+    /// </summary>
     [Table("Comments")]
     public class Comment
     {
@@ -12,5 +15,8 @@ namespace api.Models
         public int? StockId {get;set;}
         // stock will be a navigation property that we'll use to access the stock objects
         public Stock? Stock {get;set;}
+        // add a user id so that we can get a user object
+        public string? AppUserId {get; set;}
+        public AppUser? AppUser {get;set;}
     }
 }

@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using api.Dtos.Comment;
+using api.Extensions;
 using api.Interfaces;
 using api.Mappers;
+using api.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
@@ -16,11 +19,13 @@ namespace api.Controllers
         private readonly ICommentRepository _commentRepo;
         // we want a class var for the stock repo as well so that we can check if the stock exists
         private readonly IStockRepository _stockRepo;
+        private readonly UserManager<AppUser> _userManager;
 
-        public CommentController(ICommentRepository commentRepo, IStockRepository stockRepo)
+        public CommentController(ICommentRepository commentRepo, IStockRepository stockRepo, UserManager<AppUser> userManager)
         {
             _commentRepo = commentRepo;
             _stockRepo = stockRepo;
+            _userManager = userManager;
         }
 
         [HttpGet]
@@ -59,7 +64,15 @@ namespace api.Controllers
             if(!await _stockRepo.stockExists(stockId)){
                 return BadRequest("stock does not exist");
             }
+
             var commentModel = commentDto.ToCommentFromCreateDto(stockId);
+            // get currently logged in user
+            var username = User.GetUserName();
+            if(username != null){
+                var appUser = await _userManager.FindByNameAsync(username);
+                commentModel.AppUserId = appUser.Id;
+            }
+            
             commentModel = await _commentRepo.CreateAsync(commentModel);
             // This created at action is going to perform getbyid, with the param provided in the second arg, and tostockdto is going to be the final action
             return CreatedAtAction(nameof(GetById), new {id = commentModel.Id}, commentModel.ToCommentDto());

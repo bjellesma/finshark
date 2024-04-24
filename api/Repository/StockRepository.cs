@@ -44,7 +44,8 @@ namespace api.Repositories
         {
             // Get the properties of QueryObject using system.reflection
             PropertyInfo[] properties = typeof(QueryObject).GetProperties();
-            var stocks = _context.Stocks.Include(c => c.Comments).AsQueryable();
+            // since comments can include the user model, we need to use theninclude to make the nested include. This is provided by LINQ
+            var stocks = _context.Stocks.Include(c => c.Comments).ThenInclude(account => account.AppUser).AsQueryable();
             // test if the string is not null or empty
 
 

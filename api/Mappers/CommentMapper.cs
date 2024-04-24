@@ -11,6 +11,8 @@ namespace api.Mappers
                 Title = commentModel.Title,
                 Content = commentModel.Content,
                 CreatedOn = commentModel.CreatedOn,
+                // use null checking to check if logged in
+                CreatedBy = commentModel.AppUser?.UserName ?? "Anonymous",
                 StockId = commentModel.StockId
             };
         }

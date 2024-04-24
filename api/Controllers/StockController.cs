@@ -38,9 +38,9 @@ namespace api.Controllers
             // so essentially we're bypassing the defered and saying that we want this right now
             var stocks = await _stockRepo.GetAllAsync(query);
                 // select is like map in this case
-            var stockDto = stocks.Select(s => s.ToStockDto());
+            var stockDto = stocks.Select(s => s.ToStockDto()).ToList();
 
-            return Ok(stocks);
+            return Ok(stockDto);
         }
 
         [HttpGet("{id:int}")]

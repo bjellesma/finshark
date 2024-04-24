@@ -35,7 +35,8 @@ namespace api.Repository
 
         public async Task<List<Comment>> GetAllAsync()
         {
-            return await _context.Comments.ToListAsync();
+            // we need to use include to go to the associated app user model because of deferred execution
+            return await _context.Comments.Include(account => account.AppUser).ToListAsync();
         }
 
         public async Task<Comment?> GetByIdAsync(int id)
@@ -49,7 +50,7 @@ namespace api.Repository
 
         public async Task<Comment?> UpdateAsync(int id, UpdateCommentRequestDto updateDto)
         {
-            var commentModel = await _context.Comments.FirstOrDefaultAsync(x => x.Id == id);
+            var commentModel = await _context.Comments.Include(account => account.AppUser).FirstOrDefaultAsync(x => x.Id == id);
 
             if(commentModel == null){
                 return null;
