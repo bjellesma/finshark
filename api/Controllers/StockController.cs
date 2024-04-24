@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using api.Data;
 using api.Dtos.Stock;
+using api.Helpers;
 using api.Interfaces;
 using api.Mappers;
 using Microsoft.AspNetCore.Mvc;
@@ -27,7 +28,8 @@ namespace api.Controllers
 
         [HttpGet]
         // iaction result is defined on the entity framework to hold the results of an http request
-        public async Task<IActionResult> GetAll(){
+        // the fromquery anotation will allow us to get url query params
+        public async Task<IActionResult> GetAll([FromQuery] QueryObject query){
             // modelstate ensures that that the data model (dtos in our case) passes all validation
             if(!ModelState.IsValid){
                 return BadRequest(ModelState);
@@ -35,7 +37,7 @@ namespace api.Controllers
             // LINQ queries are deferred by nature meaning that the results are not returned until they're actually needed by the application
             // using ToList forces them to be retrieved at this specific point when we're calling this
             // so essentially we're bypassing the defered and saying that we want this right now
-            var stocks = await _stockRepo.GetAllAsync();
+            var stocks = await _stockRepo.GetAllAsync(query);
                 // select is like map in this case
             var stockDto = stocks.Select(s => s.ToStockDto());
 
@@ -86,7 +88,7 @@ namespace api.Controllers
 
         [HttpDelete]
         [Route("{id:int}")]
-        public async Task<IActionResult> Delete([FromRoute] int id){
+        public async Task<IActionResult> Delete([FromRoute] int id, QueryObject query){
             // modelstate ensures that that the data model (dtos in our case) passes all validation
             if(!ModelState.IsValid){
                 return BadRequest(ModelState);
@@ -95,7 +97,7 @@ namespace api.Controllers
             if(stockModel == null){
                 return NotFound();
             }
-            var stocks = await _stockRepo.GetAllAsync();
+            var stocks = await _stockRepo.GetAllAsync(query);
             var stockDto = stocks.Select(s => s.ToStockDto());
 
             // could also use return nocontent to give a 200 with no content

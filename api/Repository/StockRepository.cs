@@ -1,8 +1,11 @@
 // the point of a repository class is to abstract away any functionality that will be acting on the database
+using System.Reflection;
 using api.Data;
 using api.Dtos.Stock;
+using api.Helpers;
 using api.Interfaces;
 using api.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace api.Repositories
@@ -37,10 +40,50 @@ namespace api.Repositories
             return stockModel;
         }
 
-        public async Task<List<Stock>> GetAllAsync()
+        public async Task<List<Stock>> GetAllAsync(QueryObject query)
         {
-            return await _context.Stocks.Include(c => c.Comments).ToListAsync();
+            // Get the properties of QueryObject using system.reflection
+            PropertyInfo[] properties = typeof(QueryObject).GetProperties();
+            var stocks = _context.Stocks.Include(c => c.Comments).AsQueryable();
+            // test if the string is not null or empty
+
+
+            // Iterate over each property in query object and use the query param in a where clause
+            foreach (PropertyInfo property in properties)
+            {
+                // Get the value of the property
+                var value = property.GetValue(query) as string;
+
+                // check the queryType
+                var queryType = property.GetCustomAttribute<QueryType>();
+                if (queryType != null && !string.IsNullOrWhiteSpace(value)){
+                    
+                    
+                    switch(queryType.Type){
+                        case "Where":
+                        // Apply contains filter
+                        stocks = stocks.Where(stock => EF.Property<string>(stock, property.Name).Contains(value));
+                        break;
+                    case "OrderBy":
+                        // Apply ordering
+                        if (query.IsDescending)
+                        {
+                            stocks = stocks.OrderByDescending(stock => stock.Symbol);
+                        }
+                        else
+                        {
+                            stocks = stocks.OrderBy(stock => stock.Symbol);
+                        }
+                        break;
+                    }
+                }
+            }
+            var skipNumber = (query.PageNumber - 1) * query.PageSize;
+            
+            return await stocks.Skip(skipNumber).Take(query.PageSize).ToListAsync();
         }
+
+        
 
         public async Task<Stock?> GetByIdAsync(int id)
         {
