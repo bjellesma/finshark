@@ -1,13 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using api.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace api.Data
 {
-    public class ApplicationDBContext : DbContext 
+    public class ApplicationDBContext : IdentityDbContext<AppUser>
     {
         //  this syntax is called constructor chaining and base is a keyword that refers to the constructor of the base class
         // in this case, we're passing dbContextOptions to the constructor for the DbContext class
