@@ -96,6 +96,16 @@ namespace api.Repositories
             return stock;
         }
 
+        /// <summary>
+        /// Repo method to go to the databaase and get the stock by the given symbol
+        /// </summary>
+        /// <param name="symbol">string symbol</param>
+        /// <returns></returns>
+        public async Task<Stock?> GetBySymbolAsync(string symbol)
+        {
+            return await _context.Stocks.FirstOrDefaultAsync(stock => stock.Symbol == symbol);
+        }
+
         public Task<bool> stockExists(int id)
         {
             return _context.Stocks.AnyAsync(s => s.Id == id);

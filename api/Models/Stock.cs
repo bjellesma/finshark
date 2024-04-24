@@ -1,11 +1,9 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace api.Models
 {
+    /// <summary>
+    /// create table for stocks
+    /// </summary>
     [Table("Stocks")]
     public class Stock
     {
@@ -21,5 +19,6 @@ namespace api.Models
         public long MarketCap{get;set;}
         // stock can have many comments but a comment can only be linked to one stock
         public List<Comment>Comments{get;set;} = new List<Comment>();
+        public List<Portfolio> Portfolios {get;set;} = new List<Portfolio>();
     }
 }

@@ -16,10 +16,17 @@ namespace api.Data
         // DBset is a generi type provided by Entity designed to represent a collection of entitiies to query or save
         public DbSet<Stock> Stocks { get; set; }
         public DbSet<Comment> Comments{ get; set;}
+        public DbSet<Portfolio> Portfolios{ get; set;}
         // protected access modifiers are only accessible by instances of this class
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<Portfolio>(x => x.HasKey(p => new {p.AppUserId, p.StockId}));
+
+            // set the relationships on the joining table
+            builder.Entity<Portfolio>().HasOne(user => user.AppUser).WithMany(user => user.Portfolios).HasForeignKey(user => user.AppUserId);
+            builder.Entity<Portfolio>().HasOne(user => user.Stock).WithMany(stock => stock.Portfolios).HasForeignKey(user => user.StockId);
 
             List<IdentityRole> roles = new List<IdentityRole>
             {

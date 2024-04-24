@@ -10,6 +10,7 @@ namespace api.Interfaces
 
         // we are using the ? on stock because it will be possible to pass a null value
         Task<Stock?> GetByIdAsync(int id);
+        Task<Stock?> GetBySymbolAsync(string symbol);
         Task<Stock> CreateAsync(Stock stockModel);
         Task<Stock?> UpdateAsync(int id, UpdateStockRequestDto updateDto);
 

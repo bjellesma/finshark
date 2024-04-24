@@ -26,8 +26,6 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        // the authorize annotation will give a 401 response if you send an invalid or blank token
-        [Authorize]
         // iaction result is defined on the entity framework to hold the results of an http request
         // the fromquery anotation will allow us to get url query params
         public async Task<IActionResult> GetAll([FromQuery] QueryObject query){
