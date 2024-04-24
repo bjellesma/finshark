@@ -73,6 +73,31 @@ namespace api.Controllers
 
             return Ok(userPortfolio);
         }
+
+        /// <summary>
+        /// route to delete stock symbol from portfolio of currently logged in user
+        /// </summary>
+        /// <param name="symbol">symbol of the stock</param>
+        /// <returns></returns>
+        [HttpDelete]
+        [Authorize]
+        public async Task<IActionResult> DeletePortfolio(string symbol){
+            var username = User.GetUserName();
+            var appUser = await _userManager.FindByNameAsync(username);
+
+            // if the stock already exists in the user portfolio
+            var userPortfolio = await _portfolioRepo.GetUserPortfolio(appUser);
+
+            // find the stock on the userportfolio
+            var filteredStock = userPortfolio.Where(stock => stock.Symbol.ToLower() == symbol.ToLower()).ToList();
+
+            if(filteredStock.Count() == 1){
+                var portfolioModel = await _portfolioRepo.DeletePortfolio(appUser,symbol);
+                return Ok(portfolioModel);
+            }else{
+                return BadRequest("Stock is not in your portfolio");
+            }
+        }
     }
 
     
