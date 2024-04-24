@@ -3,10 +3,12 @@ using api.Interfaces;
 using api.Models;
 using api.Repositories;
 using api.Repository;
+using api.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +18,35 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // api explorer and swaggergen are used to allow the app to generate documentation based on api endpoints
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// use openapi with swagger to allow us to send authorization tokens on each swagger request
+// swagger authorize itself will not tell you if the token is valid, it will just store the token
+builder.Services.AddSwaggerGen(option =>
+{
+    option.SwaggerDoc("v1", new OpenApiInfo { Title = "Finshark", Version = "v1" });
+    option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please enter a valid token",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
+    option.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type=ReferenceType.SecurityScheme,
+                    Id="Bearer"
+                }
+            },
+            new string[]{}
+        }
+    });
+});
 
 // The entity framework will commonly run into circular references with Navigational Properties
 // Newtonsoft helps to ensure that the JSON output is clean
@@ -63,7 +93,7 @@ builder.Services.AddAuthentication(options => {
 // scoped means that a new instance is generated for each user ensuring that requests are isolated
 builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
-
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 
 var app = builder.Build();

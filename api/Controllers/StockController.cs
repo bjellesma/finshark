@@ -7,9 +7,8 @@ using api.Dtos.Stock;
 using api.Helpers;
 using api.Interfaces;
 using api.Mappers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Validations;
 
 namespace api.Controllers
 {
@@ -27,6 +26,8 @@ namespace api.Controllers
         }
 
         [HttpGet]
+        // the authorize annotation will give a 401 response if you send an invalid or blank token
+        [Authorize]
         // iaction result is defined on the entity framework to hold the results of an http request
         // the fromquery anotation will allow us to get url query params
         public async Task<IActionResult> GetAll([FromQuery] QueryObject query){
